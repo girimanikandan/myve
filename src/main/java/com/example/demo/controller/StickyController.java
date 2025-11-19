@@ -21,34 +21,35 @@ public class StickyController {
         this.neo4j = neo4j;
     }
 
-   @GetMapping("/ui")
-public List<Map<String, Object>> getStickyNotes() {
+    @GetMapping("/ui")
+    public List<Map<String, Object>> getStickyNotes() {
 
-    String cypher = """
-        MATCH (e:Entity)
-        OPTIONAL MATCH (e)-[:TAGGED_WITH]->(t:Tag)
-        RETURN e.entityId AS id,
-               e.title AS title,
-               e.summary AS text,
-               collect(t.name) AS tags
-    """;
+        String cypher = """
+            MATCH (e:Entity)
+            OPTIONAL MATCH (e)-[:TAGGED_WITH]->(t:Tag)
+            RETURN e.entityId AS id,
+                   e.title AS title,
+                   e.summary AS text,
+                   collect(t.name) AS tags
+        """;
 
-    // FIX: fetch results as Collection
-    Collection<Map<String, Object>> result =
-            neo4j.query(cypher).fetch().all();
+        //  Fetch safely as Collection
+        Collection<Map<String, Object>> result = neo4j.query(cypher)
+                .fetch().all();
 
-    // Convert to List (your IDE wants List)
-    List<Map<String, Object>> list = new ArrayList<>(result);
+        // Convert to List so we can modify data
+        List<Map<String, Object>> list = new ArrayList<>(result);
 
-    Random r = new Random();
-    list.forEach(item -> {
-        item.put("color", "#FFD54F");
-        item.put("x", r.nextInt(600));
-        item.put("y", r.nextInt(400));
-        item.put("width", 200);
-        item.put("height", 140);
-    });
+        // Add UI properties
+        Random r = new Random();
+        for (Map<String, Object> item : list) {
+            item.put("color", "#FFD54F");
+            item.put("x", r.nextInt(600));
+            item.put("y", r.nextInt(400));
+            item.put("width", 200);
+            item.put("height", 140);
+        }
 
-    return list;
-}
+        return list;
+    }
 }
