@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Stage, Layer, Rect, Text, Group } from "react-konva";
 
 function App() {
   const [notes, setNotes] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/stickies/ui")
+    fetch("http://localhost:8081/api/stickies/ui")
       .then((res) => res.json())
       .then((data) => setNotes(data))
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("API error:", err));
   }, []);
 
   return (
@@ -23,7 +23,7 @@ function App() {
                 width={note.width}
                 height={note.height}
                 fill={note.color}
-                cornerRadius={12}
+                cornerRadius={10}
                 shadowBlur={8}
               />
 
