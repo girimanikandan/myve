@@ -5,7 +5,7 @@ function App() {
   const [notes, setNotes] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8083/api/stickies/ui")
+    fetch("http://localhost:8084/api/stickies/ui")
       .then((res) => res.json())
       .then((data) => setNotes(data))
       .catch((err) => console.error("API error:", err));

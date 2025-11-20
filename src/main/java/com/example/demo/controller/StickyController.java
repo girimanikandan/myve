@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -27,29 +28,33 @@ public class StickyController {
         String cypher = """
             MATCH (e:Entity)
             OPTIONAL MATCH (e)-[:TAGGED_WITH]->(t:Tag)
-            RETURN e.entityId AS id,
-                   e.title AS title,
-                   e.summary AS text,
-                   collect(t.name) AS tags
+            RETURN 
+                e.entityId AS id,
+                e.title AS title,
+                e.summary AS text,
+                collect(t.name) AS tags
         """;
 
-        //  Fetch safely as Collection
-        Collection<Map<String, Object>> result = neo4j.query(cypher)
-                .fetch().all();
+        Collection<Map<String, Object>> rawResult = neo4j.query(cypher).fetch().all();
 
-        // Convert to List so we can modify data
-        List<Map<String, Object>> list = new ArrayList<>(result);
-
-        // Add UI properties
+        List<Map<String, Object>> finalList = new ArrayList<>();
         Random r = new Random();
-        for (Map<String, Object> item : list) {
+
+        for (Map<String, Object> row : rawResult) {
+
+            // Create NEW modifiable map
+            Map<String, Object> item = new HashMap<>(row);
+
+            // Add UI fields
             item.put("color", "#FFD54F");
             item.put("x", r.nextInt(600));
             item.put("y", r.nextInt(400));
             item.put("width", 200);
             item.put("height", 140);
+
+            finalList.add(item);
         }
 
-        return list;
+        return finalList;
     }
 }
