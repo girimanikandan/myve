@@ -1,29 +1,32 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { Stage, Layer, Rect, Text, Group, Line } from "react-konva"; // <- Added Line
+import { Stage, Layer, Rect, Text, Group, Arrow } from "react-konva"; // <- Changed Line to Arrow
 
 // 1. Define the basic shape of a sticky node and a link
 const NODE_WIDTH = 200;
 const NODE_HEIGHT = 100;
 
-// The structure for your link data. You will need to fetch this from your backend as well.
-// For now, let's define a hardcoded example link from one node to another.
+// Update the links to define all desired connections.
+// I will assume your nodes are retrieved with IDs 1, 2, 3, etc.
+// If your nodes have different IDs (e.g., UUIDs), you must adjust these links accordingly.
 const INITIAL_LINKS = [
-  // This link assumes node with id: 1 connects to node with id: 2
-  // You may need to adjust the IDs based on what your backend actually returns.
-  { id: "L1", sourceId: 1, targetId: 2, color: "#333333" },
+  // Example connections: 1 -> 2 and 2 -> 3
+  // If you want all-to-all, you need a link for every pair.
+  { id: "L1", sourceId: 1, targetId: 2, color: "red" },
+  { id: "L2", sourceId: 2, targetId: 3, color: "blue" },
+  { id: "L3", sourceId: 3, targetId: 1, color: "green" },
+  // Add more links here if your backend returns more nodes
 ];
 
 // Helper function to calculate where the arrow should connect on the boundary of the rectangle
 const getArrowPoints = (source, target) => {
-  // Simple connection for demonstration: center of source to center of target
-  // For a more sophisticated connection (e.g., closest edge), a more complex geometry function is needed.
+  // Simple connection: center of source to center of target
   const p1 = {
-    x: source.x + NODE_WIDTH / 2,
-    y: source.y + NODE_HEIGHT / 2,
+    x: source.x + source.width / 2, // Use source.width/height in case they vary
+    y: source.y + source.height / 2,
   };
   const p2 = {
-    x: target.x + NODE_WIDTH / 2,
-    y: target.y + NODE_HEIGHT / 2,
+    x: target.x + target.width / 2,
+    y: target.y + target.height / 2,
   };
 
   // Line points
@@ -35,7 +38,7 @@ const getArrowPoints = (source, target) => {
 function App() {
   // Use a map for nodes for O(1) lookup speed (faster than iterating array)
   const [nodesMap, setNodesMap] = useState({});
-  const [links, setLinks] = useState(INITIAL_LINKS); // <- New state for links
+  const [links, setLinks] = useState(INITIAL_LINKS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -61,13 +64,13 @@ function App() {
 
         // Convert the array into a Map/Object for O(1) lookup speed
         const initialNodesMap = data.reduce((acc, node) => {
-          // Add a default width/height if your backend doesn't provide it
+          // Ensure width/height exist for arrow calculation
           acc[node.id] = { ...node, width: node.width || NODE_WIDTH, height: node.height || NODE_HEIGHT };
           return acc;
         }, {});
 
         setNodesMap(initialNodesMap);
-        // NOTE: You would typically fetch links data here as well if they are separate.
+        // NOTE: If your backend provides links, you would update setLinks(fetchedLinks) here.
 
       })
       .catch((err) => {
@@ -116,21 +119,15 @@ function App() {
             const points = getArrowPoints(sourceNode, targetNode);
 
             return (
-              <Line
+              <Arrow // <- Changed from Line to Arrow
                 key={link.id}
                 points={points}
                 stroke={link.color || "black"}
                 strokeWidth={2}
-                lineCap="round"
-                lineJoin="round"
-                // Properties to turn the line end into an arrow head
-                tension={0} // Straight line
-                // The Konva Arrow shape would be a better choice for complex arrows
-                // For a basic line with an arrow at the end, this is sufficient:
-                dash={[10, 5]} // Example dashed line
-                // To get a true arrowhead, use <Arrow /> instead of <Line />
                 pointerLength={10}
                 pointerWidth={10}
+                fill={link.color || "black"} // Fill the arrowhead
+                tension={0}
               />
             );
           })}
