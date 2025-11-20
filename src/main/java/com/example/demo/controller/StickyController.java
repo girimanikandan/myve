@@ -26,35 +26,29 @@ public class StickyController {
     public List<Map<String, Object>> getStickyNotes() {
 
         String cypher = """
-            MATCH (e:Entity)
-            OPTIONAL MATCH (e)-[:TAGGED_WITH]->(t:Tag)
+            MATCH (p:Person)
             RETURN 
-                e.entityId AS id,
-                e.title AS title,
-                e.summary AS text,
-                collect(t.name) AS tags
+                p.id AS id,
+                p.name AS title,
+                p.name AS text
         """;
 
-        Collection<Map<String, Object>> rawResult = neo4j.query(cypher).fetch().all();
+        Collection<Map<String, Object>> raw = neo4j.query(cypher).fetch().all();
 
-        List<Map<String, Object>> finalList = new ArrayList<>();
+        List<Map<String, Object>> list = new ArrayList<>();
         Random r = new Random();
 
-        for (Map<String, Object> row : rawResult) {
+        for (Map<String, Object> row : raw) {
+            Map<String, Object> note = new HashMap<>(row);
+            note.put("color", "#FFD54F");
+            note.put("x", r.nextInt(600));
+            note.put("y", r.nextInt(400));
+            note.put("width", 180);
+            note.put("height", 120);
 
-            // Create NEW modifiable map
-            Map<String, Object> item = new HashMap<>(row);
-
-            // Add UI fields
-            item.put("color", "#FFD54F");
-            item.put("x", r.nextInt(600));
-            item.put("y", r.nextInt(400));
-            item.put("width", 200);
-            item.put("height", 140);
-
-            finalList.add(item);
+            list.add(note);
         }
 
-        return finalList;
+        return list;
     }
 }
